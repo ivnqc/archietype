@@ -73,12 +73,8 @@
   (let ((root (prompt "Root partition (e.g. /dev/sda2): ")))
     (setf (getf config :root) root))
 
-  (let ((uefi (yes-p "Is this a UEFI system? [y/N]: ")))
-    (setf (getf config :uefi-p) uefi)
-
-    (when uefi
-      (let ((efi (prompt "EFI partition (e.g. /dev/sda1): ")))
-        (setf (getf config :efi) efi))))
+  (let ((efi (prompt "EFI partition (e.g. /dev/sda1): ")))
+    (setf (getf config :efi) efi))
   config)
 
 (defun ask-swap (config)
@@ -105,10 +101,8 @@
 
   (format t "Disk:~%")
   (format t "  Root: ~A~%" (getf config :root))
-  (format t "  UEFI: ~A~%" (if (getf config :uefi-p) "yes" "no"))
 
-  (when (getf config :uefi-p)
-    (format t "  EFI:  ~A~%" (getf config :efi)))
+  (format t "  EFI:  ~A~%" (getf config :efi))
 
   (when (getf config :swap)
     (format t "  Swap: ~A~%" (getf config :swap)))
@@ -133,9 +127,8 @@
   (setf (getf config :format-root)
         (yes-p "Format root partition? [y/N]: "))
 
-  (when (getf config :uefi-p)
-    (setf (getf config :format-efi)
-          (yes-p "Format EFI partition? [y/N]: ")))
+  (setf (getf config :format-efi)
+        (yes-p "Format EFI partition? [y/N]: "))
 
   (when (getf config :swap)
     (setf (getf config :format-swap)
@@ -201,20 +194,19 @@
   (format s "systemctl enable systemd-networkd systemd-resolved~%"))
 
 (defun setup-bootloader (s config)
-  (when (getf config :uefi-p)
-    (format s "bootctl install~%")
+  (format s "bootctl install~%")
  
-    (format s "echo 'default arch' > /boot/loader/loader.conf~%")
-    (format s "echo 'timeout 3' >> /boot/loader/loader.conf~%")
+  (format s "echo 'default arch' > /boot/loader/loader.conf~%")
+  (format s "echo 'timeout 3' >> /boot/loader/loader.conf~%")
 
-    (format s "ROOT_UUID=$(findmnt -no UUID /)~%")
+  (format s "ROOT_UUID=$(findmnt -no UUID /)~%")
 
-    (format s "cat <<EOF > /boot/loader/entries/arch.conf~%")
-    (format s "title archietype~%")
-    (format s "linux /vmlinuz-linux~%")
-    (format s "initrd /initramfs-linux.img~%")
-    (format s "options root=UUID=$ROOT_UUID rw~%")
-    (format s "EOF~%")))
+  (format s "cat <<EOF > /boot/loader/entries/arch.conf~%")
+  (format s "title archietype~%")
+  (format s "linux /vmlinuz-linux~%")
+  (format s "initrd /initramfs-linux.img~%")
+  (format s "options root=UUID=$ROOT_UUID rw~%")
+  (format s "EOF~%"))
 
 (defun make-step (id &key desc when run)
   (list :id id
@@ -226,8 +218,7 @@
   (getf config :format-root))
 
 (defun wants-format-efi (config)
-  (and (getf config :uefi-p)
-       (getf config :format-efi)))
+  (getf config :format-efi))
 
 (defun wants-format-swap (config)
   (and (getf config :swap)
@@ -278,7 +269,6 @@
 
    (make-step :mount-efi
      :desc "Mount EFI"
-     :when (lambda (c) (getf c :uefi-p))
      :run #'mount-efi)
 
    ;; ----------------------------
