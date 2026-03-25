@@ -1,5 +1,10 @@
 #!/usr/bin/env sbcl --script
 
+
+;;; ----------------------------
+;;; Core utilities
+;;; ----------------------------
+
 (defun die (fmt &rest args)
   (apply #'format *error-output* fmt args)
   (terpri *error-output*)
@@ -38,7 +43,7 @@
     value))
 
 ;;; ----------------------------
-;;; Steps
+;;; Installer actions
 ;;; ----------------------------
 
 (defun format-root (config)
@@ -208,6 +213,10 @@
   (format s "options root=UUID=$ROOT_UUID rw~%")
   (format s "EOF~%"))
 
+;;; ----------------------------
+;;; Step DSL
+;;; ----------------------------
+
 (shadow 'step)
 (defmacro step (id (&key desc when) &body body)
   `(list :id ',id
@@ -218,6 +227,10 @@
                       t))
          :fn (lambda (config)
                ,@body)))
+
+;;; ----------------------------
+;;; Step predicates
+;;; ----------------------------
 
 (defun wants-format-root (config)
   (getf config :format-root))
@@ -231,6 +244,10 @@
 
 (defun has-swap (config)
   (getf config :swap))
+
+;;; ----------------------------
+;;; Step definitions
+;;; ----------------------------
 
 (defparameter *steps*
   (list
@@ -283,9 +300,12 @@
      (configure-chroot config))))
 
 ;;; ----------------------------
-;;; Main
+;;; Step engine
 ;;; ----------------------------
 
+;;; Core execution engine.
+;;; Steps are executed sequentially, threading a config plist.
+;;; On failure, the user may retry, skip, or abort.
 (defun run-step (step config)
   (let ((name (getf step :name))
         (fn   (getf step :fn))
@@ -318,6 +338,10 @@
 (defun run-steps (steps config)
   (dolist (step steps config)
     (setf config (run-step step config))))
+
+;;; ----------------------------
+;;; Entry point
+;;; ----------------------------
 
 (defun main ()
   (format t "~&archietype - minimal base system~%~%")
