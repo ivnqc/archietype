@@ -208,11 +208,16 @@
   (format s "options root=UUID=$ROOT_UUID rw~%")
   (format s "EOF~%"))
 
-(defun make-step (id &key desc when run)
-  (list :id id
-        :name (or desc (symbol-name id))
-        :when when
-        :fn run))
+(shadow 'step)
+(defmacro step (id (&key desc when) &body body)
+  `(list :id ',id
+         :name ,(or desc (symbol-name id))
+         :when (lambda (config)
+                 ,(if when
+                      `(let ((config config)) ,when)
+                      t))
+         :fn (lambda (config)
+               ,@body)))
 
 (defun wants-format-root (config)
   (getf config :format-root))
@@ -230,71 +235,52 @@
 (defparameter *steps*
   (list
 
-   ;; ----------------------------
-   ;; Config
-   ;; ----------------------------
-   (make-step :config
-     :desc "Disk + system config"
-     :run (lambda (c)
-            (setf c (ask-partitions c))
-            (setf c (build-config c))
-            (setf c (ask-swap c))
-            (setf c (confirm-config c))
-            (ask-format-options c)))
+   (step config
+     (:desc "Disk + system config")
+     (setf config (ask-partitions config))
+     (setf config (build-config config))
+     (setf config (ask-swap config))
+     (setf config (confirm-config config))
+     (ask-format-options config))
 
-   ;; ----------------------------
-   ;; Format
-   ;; ----------------------------
-   (make-step :format-root
-     :desc "Format root"
-     :when #'wants-format-root
-     :run  #'format-root)
+   (step format-root
+     (:desc "Format root"
+      :when (wants-format-root config))
+     (format-root config))
 
-   (make-step :format-efi
-     :desc "Format EFI"
-     :when #'wants-format-efi
-     :run  #'format-efi)
+   (step format-efi
+     (:desc "Format EFI"
+      :when (wants-format-efi config))
+     (format-efi config))
 
-   (make-step :format-swap
-     :desc "Format swap"
-     :when #'wants-format-swap
-     :run  #'format-swap)
+   (step format-swap
+     (:desc "Format swap"
+      :when (wants-format-swap config))
+     (format-swap config))
 
-   ;; ----------------------------
-   ;; Mount
-   ;; ----------------------------
-   (make-step :mount-root
-     :desc "Mount root"
-     :run #'mount-root)
+   (step mount-root
+     (:desc "Mount root")
+     (mount-root config))
 
-   (make-step :mount-efi
-     :desc "Mount EFI"
-     :run #'mount-efi)
+   (step mount-efi
+     (:desc "Mount EFI")
+     (mount-efi config))
 
-   ;; ----------------------------
-   ;; Swap
-   ;; ----------------------------
-   (make-step :enable-swap
-     :desc "Enable swap"
-     :when #'has-swap
-     :run  #'enable-swap)
+   (step enable-swap
+     (:desc "Enable swap"
+      :when (has-swap config))
+     (enable-swap config))
 
-   ;; ----------------------------
-   ;; Install
-   ;; ----------------------------
-   (make-step :install-base
-     :run #'install-base)
+   (step install-base ()
+     (install-base config))
 
-   (make-step :genfstab
-     :desc "Generate fstab"
-     :run #'generate-fstab)
+   (step genfstab
+     (:desc "Generate fstab")
+     (generate-fstab config))
 
-   ;; ----------------------------
-   ;; System config
-   ;; ----------------------------
-   (make-step :configure
-     :desc "Configure system"
-     :run #'configure-chroot)))
+   (step configure
+     (:desc "Configure system")
+     (configure-chroot config))))
 
 ;;; ----------------------------
 ;;; Main
