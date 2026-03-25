@@ -63,7 +63,7 @@
 
 (defun mount-efi (config)
   (run "mkdir -p /mnt/boot")
-  (run (format nil "mount ~A /mnt/boot"
+  (run (format nil "mount -o umask=007 ~A /mnt/boot"
                (require-config config :efi)))
 	config)
 
