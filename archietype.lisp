@@ -221,10 +221,9 @@
 (defmacro step (id (&key desc when) &body body)
   `(list :id ',id
          :name ,(or desc (symbol-name id))
-         :when (lambda (config)
-                 ,(if when
-                      `(let ((config config)) ,when)
-                      t))
+         :when ,(if when
+                    `(lambda (config) ,when)
+                    `(lambda (config) t))
          :fn (lambda (config)
                ,@body)))
 
