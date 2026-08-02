@@ -43,6 +43,22 @@
     value))
 
 ;;; ----------------------------
+;;; Helpers
+;;; ----------------------------
+
+(defun sh-line (s fmt &rest args)
+  (apply #'format s (concatenate 'string fmt "~%") args))
+
+(defun sh-command (s fmt &rest args)
+  (apply #'sh-line s fmt args))
+
+(defun sh-symlink (s target link)
+  (sh-line s "ln -sf ~A ~A" target link))
+
+(defun sh-enable-service (s &rest services)
+  (sh-line s "systemctl enable ~{~A~^ ~}" services))
+
+;;; ----------------------------
 ;;; Installer actions
 ;;; ----------------------------
 
