@@ -195,9 +195,9 @@
 	config)
 
 (defun setup-time (s)
-  (format s "ln -sf /usr/share/zoneinfo/UTC /etc/localtime~%")
-  (format s "hwclock --systohc~%")
-  (format s "systemctl enable systemd-timesyncd~%"))
+  (sh-symlink s "/usr/share/zoneinfo/UTC" "/etc/localtime")
+  (sh-command s "hwclock --systohc")
+  (sh-enable-service s "systemd-timesyncd"))
 
 (defun setup-localization (s config)
   (format s "echo '~A UTF-8' >> /etc/locale.gen~%"
