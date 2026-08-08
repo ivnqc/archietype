@@ -84,7 +84,7 @@
 
 (defun mount-efi (config)
   (run "mkdir -p /mnt/boot")
-  (run (format nil "mount -o umask=007 ~A /mnt/boot"
+  (run (format nil "mount -t vfat -o fmask=177,dmask=077 ~A /mnt/boot"
                (require-config config :efi)))
 	config)
 
