@@ -191,7 +191,6 @@
 
   (run "chmod +x /mnt/root/archietype-chroot.sh")
   (run "arch-chroot -S /mnt /root/archietype-chroot.sh")
-  (run "rm /mnt/root/archietype-chroot.sh")
 	config)
 
 (defun setup-time (s)
