@@ -211,8 +211,8 @@
 (defun setup-network (s config)
   (format s "echo '~A' > /etc/hostname~%"
         (getf config :hostname))
-  (format s "ln -sf /usr/lib/systemd/network/89-ethernet.network.example /etc/systemd/network/89-ethernet.network~%")
-  (format s "systemctl enable systemd-networkd systemd-resolved~%"))
+  (sh-symlink s "/usr/lib/systemd/network/89-ethernet.network.example" "/etc/systemd/network/89-ethernet.network")
+  (sh-enable-service s "systemd-networkd systemd-resolved"))
 
 (defun setup-bootloader (s config)
   (format s "bootctl install~%")
