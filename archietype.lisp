@@ -183,9 +183,9 @@
     (setup-localization s config)
     (setup-network s config)
     
-    (format s "mkinitcpio -P~%")
-    (format s "echo 'Set root password:'~%")
-    (format s "passwd~%")
+    (sh-command s "mkinitcpio -P")
+    (sh-command s "echo 'Set root password:'")
+    (sh-command s "passwd")
 
     (setup-bootloader s config))
 
