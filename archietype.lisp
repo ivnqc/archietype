@@ -214,12 +214,12 @@
   (sh-enable-service s "systemd-networkd systemd-resolved"))
 
 (defun setup-bootloader (s config)
-  (format s "bootctl install~%")
+  (sh-command s "bootctl install")
  
   (format s "echo 'default arch' > /boot/loader/loader.conf~%")
   (format s "echo 'timeout 3' >> /boot/loader/loader.conf~%")
 
-  (format s "ROOT_UUID=$(findmnt -no UUID /)~%")
+  (sh-command s "ROOT_UUID=$(findmnt -no UUID /)")
 
   (format s "cat <<EOF > /boot/loader/entries/arch.conf~%")
   (format s "title archietype~%")
