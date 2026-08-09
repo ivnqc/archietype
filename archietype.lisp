@@ -189,11 +189,12 @@
     (setup-localization s config)
     (setup-network s config)
     
-    (sh-command s "mkinitcpio -P")
     (sh-command s "echo 'Set root password:'")
     (sh-command s "passwd")
 
-    (setup-bootloader s))
+    (setup-bootloader s)
+    
+    (sh-command s "mkinitcpio -P"))
 
   (run "chmod +x /mnt/root/archietype-chroot.sh")
   (run "arch-chroot -S /mnt /root/archietype-chroot.sh")
