@@ -46,11 +46,11 @@
 ;;; Helpers
 ;;; ----------------------------
 
-(defun sh-line (s fmt &rest args)
-  (apply #'format s (concatenate 'string fmt "~%") args))
+(defun sh-line (s format-string &rest args)
+  (apply #'format s (concatenate 'string format-string "~%") args))
 
-(defun sh-command (s fmt &rest args)
-  (apply #'sh-line s fmt args))
+(defun sh-command (s format-string &rest args)
+  (apply #'sh-line s format-string args))
 
 (defun sh-symlink (s target link)
   (sh-line s "ln -sf ~A ~A" target link))
