@@ -193,7 +193,7 @@
     (sh-command s "echo 'Set root password:'")
     (sh-command s "passwd")
 
-    (setup-bootloader s config))
+    (setup-bootloader s))
 
   (run "chmod +x /mnt/root/archietype-chroot.sh")
   (run "arch-chroot -S /mnt /root/archietype-chroot.sh")
@@ -219,20 +219,26 @@
   (sh-symlink s "/usr/lib/systemd/network/89-ethernet.network.example" "/etc/systemd/network/89-ethernet.network")
   (sh-enable-service s "systemd-networkd systemd-resolved"))
 
-(defun setup-bootloader (s config)
+(defun setup-bootloader (s)
   (sh-command s "bootctl install")
- 
-  (format s "echo 'default arch' > /boot/loader/loader.conf~%")
-  (format s "echo 'timeout 3' >> /boot/loader/loader.conf~%")
 
   (sh-command s "ROOT_UUID=$(findmnt -no UUID /)")
-
-  (format s "cat <<EOF > /boot/loader/entries/arch.conf~%")
-  (format s "title archietype~%")
-  (format s "linux /vmlinuz-linux~%")
-  (format s "initrd /initramfs-linux.img~%")
-  (format s "options root=UUID=$ROOT_UUID rw~%")
-  (format s "EOF~%"))
+  (sh-command s "printf '%s\\n' \"root=UUID=$ROOT_UUID rw\" > /etc/kernel/cmdline")
+  
+  (sh-write-file 
+  s
+  "/etc/mkinitcpio.d/linux.preset"
+  "# mkinitcpio preset file for the 'linux' package"
+  ""
+  "ALL_kver=\"/boot/vmlinuz-linux\""
+  ""
+  "PRESETS=('default' 'fallback')"
+  ""
+  "default_uki=\"/boot/EFI/Linux/arch-linux.efi\""
+  "default_options=\"--splash /usr/share/systemd/bootctl/splash-arch.bmp\""
+  ""
+  "fallback_uki=\"/boot/EFI/Linux/arch-linux-fallback.efi\""
+  "fallback_options=\"-S autodetect\""))
 
 ;;; ----------------------------
 ;;; Step DSL
