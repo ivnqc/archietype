@@ -311,12 +311,13 @@
       :when (has-swap config))
      (enable-swap config))
 
-   (step install-base ()
-     (install-base config))
+   (step install-base
+     (:desc "Install base")
+     (install-base))
 
    (step genfstab
      (:desc "Generate fstab")
-     (generate-fstab config))
+     (generate-fstab))
 
    (step configure
      (:desc "Configure system")
