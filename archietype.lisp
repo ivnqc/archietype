@@ -70,29 +70,24 @@
 
 (defun format-root (config)
   (run (format nil "mkfs.ext4 ~A"
-               (require-config config :root)))
-	config)
+               (require-config config :root))))
 
 (defun format-efi (config)
   (run (format nil "mkfs.fat -F32 ~A"
-               (require-config config :efi)))
-	config)
+               (require-config config :efi))))
 
 (defun format-swap (config)
   (run (format nil "mkswap ~A"
-               (require-config config :swap)))
-	config)
+               (require-config config :swap))))
 
 (defun mount-root (config)
   (run (format nil "mount ~A /mnt"
-               (require-config config :root)))
-	config)
+               (require-config config :root))))
 
 (defun mount-efi (config)
   (run "mkdir -p /mnt/boot")
   (run (format nil "mount -t vfat -o fmask=177,dmask=077 ~A /mnt/boot"
-               (require-config config :efi)))
-	config)
+               (require-config config :efi))))
 
 (defun ask-partitions (config)
   (format t "~&==> Disk configuration~%~%")
@@ -165,8 +160,7 @@
 (defun enable-swap (config)
   (let ((swap (getf config :swap)))
     (when swap
-      (run (format nil "swapon ~A" swap))))
-  config)
+      (run (format nil "swapon ~A" swap)))))
 
 (defun install-base ()
   (run "pacstrap /mnt base linux"))
