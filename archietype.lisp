@@ -5,22 +5,22 @@
 ;;; Core utilities
 ;;; ----------------------------
 
-(defun die (fmt &rest args)
-  (apply #'format *error-output* fmt args)
+(defun die (format-string &rest args)
+  (apply #'format *error-output* format-string args)
   (terpri *error-output*)
   (sb-ext:exit :code 1))
 
-(defun run (cmd)
-  (format t "~&  ~A~%" cmd)
-  (let ((code (sb-ext:run-program
+(defun run (shell-command)
+  (format t "~&  ~A~%" shell-command)
+  (let ((process (sb-ext:run-program
                "/bin/sh"
-               (list "-c" cmd)
+               (list "-c" shell-command)
                :input t
                :output *standard-output*
                :error *error-output*
                :search t)))
-    (unless (zerop (sb-ext:process-exit-code code))
-      (die "Command failed: ~A" cmd))))
+    (unless (zerop (sb-ext:process-exit-code process))
+      (die "Command failed: ~A" shell-command))))
 
 (defun prompt (text)
   (format t "~&~A" text)
