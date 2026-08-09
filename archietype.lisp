@@ -58,6 +58,12 @@
 (defun sh-enable-service (s &rest services)
   (sh-line s "systemctl enable ~{~A~^ ~}" services))
 
+(defun sh-write-file (s path &rest lines)
+  (sh-line s "cat > ~A <<'EOF'" path)
+  (dolist (line lines)
+    (sh-line s "~A" line))
+  (sh-line s "EOF"))
+
 ;;; ----------------------------
 ;;; Installer actions
 ;;; ----------------------------
