@@ -8,7 +8,7 @@
 (defun die (fmt &rest args)
   (apply #'format *error-output* fmt args)
   (terpri *error-output*)
-  (quit 1))
+  (sb-ext:exit :code 1))
 
 (defun run (cmd)
   (format t "~&  ~A~%" cmd)
