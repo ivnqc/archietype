@@ -168,15 +168,11 @@
       (run (format nil "swapon ~A" swap))))
   config)
 
-(defun install-base (config)
-  (declare (ignore config))
-  (run "pacstrap /mnt base linux")
-	config)
+(defun install-base ()
+  (run "pacstrap /mnt base linux"))
 
-(defun generate-fstab (config)
-  (declare (ignore config))
-  (run "genfstab -U /mnt >> /mnt/etc/fstab")
-	config)
+(defun generate-fstab ()
+  (run "genfstab -U /mnt >> /mnt/etc/fstab"))
 
 (defun configure-chroot (config)
   (with-open-file (s "/mnt/root/archietype-chroot.sh"
