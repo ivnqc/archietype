@@ -172,8 +172,8 @@
   (with-open-file (s "/mnt/root/archietype-chroot.sh"
                      :direction :output
                      :if-exists :supersede)
-    (format s "#!/bin/sh~%")
-    (format s "set -eux~%")
+    (sh-line s "#!/bin/sh")
+    (sh-line s "set -eux")
     
     (setup-time s)
     (setup-localization s config)
