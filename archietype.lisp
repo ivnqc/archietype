@@ -219,7 +219,7 @@
 	  (getf config :keymap)))
 
 (defun setup-network (s config)
-  (format s "echo '~A' > /etc/hostname~%"
+  (sh-line s "echo '~A' > /etc/hostname"
         (getf config :hostname))
   (sh-symlink s "/usr/lib/systemd/network/89-ethernet.network.example" "/etc/systemd/network/89-ethernet.network")
   (sh-enable-service s "systemd-networkd systemd-resolved"))
