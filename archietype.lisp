@@ -65,6 +65,20 @@
   (sh-line s "EOF"))
 
 ;;; ----------------------------
+;;; Configuration structures
+;;; ----------------------------
+
+(defstruct disk-config
+  root
+  efi
+  swap)
+
+(defstruct system-config
+  hostname
+  locale
+  keymap)
+
+;;; ----------------------------
 ;;; Installer actions
 ;;; ----------------------------
 
