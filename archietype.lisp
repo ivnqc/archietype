@@ -196,12 +196,12 @@
   (sh-enable-service s "systemd-timesyncd"))
 
 (defun setup-localization (s config)
-  (format s "echo '~A UTF-8' >> /etc/locale.gen~%"
+  (sh-line s "echo '~A UTF-8' >> /etc/locale.gen"
 	  (getf config :locale))
-  (format s "locale-gen~%")
-  (format s "echo 'LANG=~A' > /etc/locale.conf~%"
+  (sh-command s "locale-gen")
+  (sh-line s "echo 'LANG=~A' > /etc/locale.conf"
 	  (getf config :locale))
-  (format s "echo 'KEYMAP=~A' > /etc/vconsole.conf~%"
+  (sh-line s "echo 'KEYMAP=~A' > /etc/vconsole.conf"
 	  (getf config :keymap)))
 
 (defun setup-network (s config)
