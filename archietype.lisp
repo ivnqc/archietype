@@ -351,6 +351,43 @@
     (setf config (run-step step config))))
 
 ;;; ----------------------------
+;;; Installer
+;;; ----------------------------
+
+(defun install ()
+  (let (disk system)
+    (loop
+      (setf disk (ask-partitions)
+            system (build-config))
+            
+      (ask-swap disk)
+      
+      (when (confirm-config disk system)
+        (return)))
+        
+    (multiple-value-bind (format-root format-efi format-swap)
+      (ask-format-options disk)
+      
+      (when format-root
+        (format-root disk))
+
+      (when format-efi
+        (format-efi disk))
+        
+      (when (and (disk-config-swap disk)
+                  format-swap)
+        (format-swap disk))
+        
+        (mount-root disk)
+        (mount-efi disk)
+        
+        (enable-swap disk)
+        
+        (install-base)
+        (generate-fstab)
+        (configure-chroot system))))
+
+;;; ----------------------------
 ;;; Entry point
 ;;; ----------------------------
 
