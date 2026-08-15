@@ -82,97 +82,77 @@
 ;;; Installer actions
 ;;; ----------------------------
 
-(defun format-root (config)
+(defun format-root (disk)
   (run (format nil "mkfs.ext4 ~A"
-               (require-config config :root))))
+               (disk-config-root disk))))
 
-(defun format-efi (config)
+(defun format-efi (disk)
   (run (format nil "mkfs.fat -F32 ~A"
-               (require-config config :efi))))
+               (disk-config-efi disk))))
 
-(defun format-swap (config)
+(defun format-swap (disk)
   (run (format nil "mkswap ~A"
-               (require-config config :swap))))
+               (disk-config-swap disk))))
 
-(defun mount-root (config)
+(defun mount-root (disk)
   (run (format nil "mount ~A /mnt"
-               (require-config config :root))))
+               (disk-config-root disk))))
 
-(defun mount-efi (config)
+(defun mount-efi (disk)
   (run "mkdir -p /mnt/boot")
   (run (format nil "mount -t vfat -o fmask=177,dmask=077 ~A /mnt/boot"
-               (require-config config :efi))))
+               (disk-config-efi disk))))
 
-(defun ask-partitions (config)
+(defun ask-partitions ()
   (format t "~&==> Disk configuration~%~%")
 
-  (let ((root (prompt "Root partition (e.g. /dev/sda2): ")))
-    (setf (getf config :root) root))
+  (make-disk-config 
+    :root (prompt "Root partition (e.g. /dev/sda2): ")
+    :efi (prompt "EFI partition (e.g. /dev/sda1): ")))
 
-  (let ((efi (prompt "EFI partition (e.g. /dev/sda1): ")))
-    (setf (getf config :efi) efi))
-  config)
-
-(defun ask-swap (config)
+(defun ask-swap (disk)
   (when (yes-p "Do you want to set up a swap partition? [y/N]: ")
-    (setf (getf config :swap)
-          (prompt "Enter swap partition (e.g. /dev/sda3): ")))
-  config)
+    (setf (disk-config-swap disk)
+          (prompt "Enter swap partition (e.g. /dev/sda3): "))))
 
-(defun build-config (config)
+(defun build-config ()
   (format t "~&==> System configuration (press Enter to accept defaults)~%~%")
 
-  (setf (getf config :hostname)
-        (prompt-default "Hostname" "archietype"))
+  (make-system-config
+    :hostname (prompt-default "Hostname" "archietype")
+    :locale (prompt-default "Locale" "en_US.UTF-8")
+    :keymap (prompt-default "Keymap" "us")))
 
-  (setf (getf config :locale)
-        (prompt-default "Locale" "en_US.UTF-8"))
-
-  (setf (getf config :keymap)
-        (prompt-default "Keymap" "us"))
-  config)
-
-(defun confirm-config (config)
+(defun confirm-config (disk system)
   (format t "~&~%==> Final configuration~%~%")
 
   (format t "Disk:~%")
-  (format t "  Root: ~A~%" (getf config :root))
+  (format t "  Root: ~A~%" (disk-config-root disk))
 
-  (format t "  EFI:  ~A~%" (getf config :efi))
+  (format t "  EFI:  ~A~%" (disk-config-efi disk))
 
-  (when (getf config :swap)
-    (format t "  Swap: ~A~%" (getf config :swap)))
+  (when (disk-config-swap disk)
+    (format t "  Swap: ~A~%" (disk-config-swap disk)))
 
   (format t "~%System:~%")
-  (format t "  Hostname: ~A~%" (getf config :hostname))
-  (format t "  Locale:   ~A~%" (getf config :locale))
-  (format t "  Keymap:   ~A~%" (getf config :keymap))
+  (format t "  Hostname: ~A~%" (system-config-hostname system))
+  (format t "  Locale:   ~A~%" (system-config-locale system))
+  (format t "  Keymap:   ~A~%" (system-config-keymap system))
 
   (format t "~%")
 
-  (if (yes-p "Continue? [Y/n]: ")
-      config
-      (progn
-        (format t "~&Restarting configuration.~%")
-        (confirm-config
-         (ask-swap
-          (build-config
-           (ask-partitions '())))))))
+  (yes-p "Continue? [Y/n]: "))
 	
-(defun ask-format-options (config)
-  (setf (getf config :format-root)
-        (yes-p "Format root partition? [y/N]: "))
+(defun ask-format-options (disk)
+  (values
+    (yes-p "Format root partition? [y/N]: ")
+    (yes-p "Format EFI partition? [y/N]: ")
+    (if (disk-config-swap disk)
+      (yes-p "Format swap partition? [y/N]: ")
+      nil)))
 
-  (setf (getf config :format-efi)
-        (yes-p "Format EFI partition? [y/N]: "))
-
-  (when (getf config :swap)
-    (setf (getf config :format-swap)
-          (yes-p "Format swap partition? [y/N]: ")))
-  config)
-
-(defun enable-swap (config)
-  (let ((swap (getf config :swap)))
+(defun enable-swap (disk)
+  (let ((swap (disk-config-swap disk)))
     (when swap
       (run (format nil "swapon ~A" swap)))))
 
@@ -182,7 +162,7 @@
 (defun generate-fstab ()
   (run "genfstab -U /mnt >> /mnt/etc/fstab"))
 
-(defun configure-chroot (config)
+(defun configure-chroot (system)
   (with-open-file (s "/mnt/root/archietype-chroot.sh"
                      :direction :output
                      :if-exists :supersede)
@@ -190,8 +170,8 @@
     (sh-line s "set -eux")
     
     (setup-time s)
-    (setup-localization s config)
-    (setup-network s config)
+    (setup-localization s system)
+    (setup-network s system)
     
     (sh-command s "echo 'Set root password:'")
     (sh-command s "passwd")
@@ -201,26 +181,25 @@
     (sh-command s "mkinitcpio -P"))
 
   (run "chmod +x /mnt/root/archietype-chroot.sh")
-  (run "arch-chroot -S /mnt /root/archietype-chroot.sh")
-	config)
+  (run "arch-chroot -S /mnt /root/archietype-chroot.sh"))
 
 (defun setup-time (s)
   (sh-symlink s "/usr/share/zoneinfo/UTC" "/etc/localtime")
   (sh-command s "hwclock --systohc")
   (sh-enable-service s "systemd-timesyncd"))
 
-(defun setup-localization (s config)
+(defun setup-localization (s system)
   (sh-line s "echo '~A UTF-8' >> /etc/locale.gen"
-	  (getf config :locale))
+	  (system-config-locale system))
   (sh-command s "locale-gen")
   (sh-line s "echo 'LANG=~A' > /etc/locale.conf"
-	  (getf config :locale))
+	  (system-config-locale system))
   (sh-line s "echo 'KEYMAP=~A' > /etc/vconsole.conf"
-	  (getf config :keymap)))
+	  (system-config-keymap system)))
 
-(defun setup-network (s config)
+(defun setup-network (s system)
   (sh-line s "echo '~A' > /etc/hostname"
-        (getf config :hostname))
+    (system-config-hostname system))
   (sh-symlink s "/usr/lib/systemd/network/89-ethernet.network.example" "/etc/systemd/network/89-ethernet.network")
   (sh-enable-service s "systemd-networkd systemd-resolved"))
 
