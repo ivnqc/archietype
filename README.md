@@ -1,24 +1,11 @@
 # λrchietype
-A minimal, experimental Arch Linux installer written in Common Lisp.
-
-This project explores a **structured and programmable approach** to system installation using a small step-based execution model and a Lisp DSL.
+This is a small installer for setting up a minimal Arch Linux system on a UEFI machine. It uses Common Lisp for the installation logic and generates a small amount of shell code for operations that run inside the target system.
 
 ## Features
-- Step-based installation workflow
-- Small Lisp DSL for defining installation steps
-- Declarative step conditions via `:when`
-- Shared configuration state passed between steps
-- Interactive execution (retry / skip / quit on failure)
+- Interactive installation
 - Optional swap partition
-
-## DSL
-Steps are defined using a small macro-based DSL:
-```
-(step format-root
-     (:desc "Format root"
-      :when (wants-format-root config))
-     (format-root config))
-```
+- Custom hostname, locale, and keyboard layout
+- Unified Kernel Images (UKIs)
 
 ## Required packages
 * `git`
@@ -39,10 +26,10 @@ Steps are defined using a small macro-based DSL:
 
 With a minimal systemd-based setup:
 
-- `systemd-boot` as the bootloader
-- `systemd-networkd` for networking
-- `systemd-resolved` for DNS
-- `systemd-timesyncd` for time synchronization
+- `systemd-boot`
+- `systemd-networkd`
+- `systemd-resolved`
+- `systemd-timesyncd`
 
 Making it easy to customize and extend after installation.
 
@@ -53,11 +40,5 @@ cd archietype
 sbcl --script archietype.lisp
 ```
 
-## Project Goals
-* Learn Common Lisp through a real system tool
-* Explore functional patterns in scripting
-* Build a simple installer DSL
-
 # Disclaimer
 This is an experimental installer. While it is functional, edge cases and unexpected behavior may occur.
-Use at your own risk.
