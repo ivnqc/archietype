@@ -393,10 +393,7 @@
 
 (defun main ()
   (format t "~&archietype - minimal base system~%~%")
-
-  (let ((config '()))
-    (setf config (run-steps *steps* config)))
-
+  (install)
   (format t "~&Installation complete.~%")
   (format t "You may reboot now.~%"))
 
