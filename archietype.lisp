@@ -139,14 +139,6 @@
   (format t "~%")
 
   (yes-p "Continue? [Y/n]: "))
-	
-(defun ask-format-options (disk)
-  (values
-    (yes-p "Format root partition? [y/N]: ")
-    (yes-p "Format EFI partition? [y/N]: ")
-    (if (disk-config-swap disk)
-      (yes-p "Format swap partition? [y/N]: ")
-      nil)))
 
 (defun enable-swap (disk)
   (let ((swap (disk-config-swap disk)))
