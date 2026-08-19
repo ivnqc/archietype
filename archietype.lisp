@@ -108,7 +108,7 @@
     :efi (prompt "EFI partition (e.g. /dev/sda1): ")))
 
 (defun ask-swap (disk)
-  (when (yes-p "Do you want to set up a swap partition? [y/N]: ")
+  (when (yes-p "Do you want to set up a swap partition? [y/N]: " :default nil)
     (setf (disk-config-swap disk)
           (prompt "Enter swap partition (e.g. /dev/sda3): "))))
 
