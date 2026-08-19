@@ -33,8 +33,11 @@
   (let* ((input (string-trim '(#\Space #\Tab) (read-line))))
     (if (string= input "") default input)))
 
-(defun yes-p (text)
-  (member (string-downcase (prompt text)) '("y" "yes") :test #'string=))
+(defun yes-p (text &key (default t))
+  (let ((answer (string-downcase (prompt text))))
+    (if (string= answer "")
+      default
+      (member answer '("y" "yes") :test #'string=))))
 
 ;;; ----------------------------
 ;;; Helpers
